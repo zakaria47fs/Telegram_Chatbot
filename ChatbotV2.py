@@ -71,8 +71,6 @@ def start(update, context):
     df_data = pd.DataFrame.from_dict(data)
     context.user_data['datatable']  = df_data
 
-
-
     update.message.reply_text(f'Hi {fname}, Enter the Patient_Id')
 
     return choosing_patient_id
@@ -99,13 +97,17 @@ def get_patient_id(update, context):
 def get_patient_info(update, context):
     print('Get')
     print(update.message.text)
+    context.user_data['conversation_type'] = 'Get'
     df_data_last_row = context.user_data['patient_id_row']
     text = ''
     for column in df_data_last_row.columns.values:
         text = text + '\n' + column + ': ' + str(df_data_last_row[column].values[0])
 
     update.message.reply_text(text)
-    update.message.reply_text("Enter 'Update' to edit patient information or click on '/Done' to finish the chat")
+    button_labels = [['Get'], ['Update']]
+    #reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
+    markup = ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
+    update.message.reply_text("Enter 'Update' to edit patient information or click on '/Done' to finish the chat", reply_markup=markup)
     
     return None
 
@@ -119,6 +121,7 @@ def update_case(update, context):
 '''
 
 def update_patient_info_SPO2(update, context):
+    context.user_data['conversation_type'] = 'Update'
     column_index = 0
     column = editable_columns_list[column_index]
     markup = ForceReply(True, False)
@@ -418,6 +421,7 @@ def update_patient_info_Instructions(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 
@@ -443,6 +447,7 @@ def log_received_information(update, context):
     update.message.reply_text('Confirm please', reply_markup=reply_keyboard)
     
     return CONFIRM
+
 
 def edit(update, context):
     button_labels = [['SPO2'], ['PR'], ['BP'], ['ANTIBIOTIC(S)'], ['STOOL'], ['FEVER'], ['FEED'], ['I/O'], ['RTA/DRAIN'], ['Hemogram'], ['Coagulogram'], ['SE'], ['RFT'], ['ABG/VBG'], ['RBS'], ['Special Ix'], ['APACHE IV'], ['HAS BLED'], ['MDRD GFR'], ['SOFA score'],['Other Scores'], ['INSTRUCTIONS']]
@@ -472,23 +477,37 @@ def edit_choice(update, context):
     
     return CONFIRM
 
+
 def done(update, context):
-    for column in editable_columns_list:
-        context.user_data['patient_id_row'][column] =  context.user_data[column]
-    context.user_data['datatable'] = context.user_data['datatable'].append(context.user_data['patient_id_row'])
-    last_row_list = context.user_data['patient_id_row'].values[0].tolist()
-    context.user_data['sheet'].insert_row(last_row_list, len(context.user_data['datatable']))
 
-    user_data = context.user_data
-    if 'choice' in user_data:
-        del user_data['choice']
+    if context.user_data['conversation_type']=='Update':
+        # authorize the clientsheet
+        client = gspread.authorize(creds)
 
-    update.message.reply_text("I learned these facts about you:"
-                              "Until next time!"
+        # get the instance sheet of the Spreadsheet
+        sheet = client.open("Bot Spreadsheet").sheet1
+
+        # get all the records of the data
+        data = sheet.get_all_records()
+
+        # convert the json to dataframe
+        df_data = pd.DataFrame.from_dict(data)
+
+        for column in editable_columns_list:
+            context.user_data['patient_id_row'][column] =  context.user_data[column]
+
+        df_data = df_data.append(context.user_data['patient_id_row'])
+        last_row_list = context.user_data['patient_id_row'].values[0].tolist()
+        sheet.insert_row(last_row_list, len(df_data))
+        user_data = context.user_data
+        
+
+    update.message.reply_text("Until next time!"
                               "\nBye!")
-
     user_data.clear()
+
     return ConversationHandler.END
+
 
 def log_user_message(update, context):
     print(f'Message sent by user: {update.message.text}')
@@ -516,12 +535,9 @@ def main():
 
             update_or_get: [
                 MessageHandler(Filters.regex('^Get$'), get_patient_info),
-                MessageHandler(Filters.regex('^Update$'), update_patient_info_SPO2)
+                MessageHandler(Filters.regex('^Update$'), update_patient_info_SPO2),
+                CommandHandler('Done', done)
             ],
-
-            #update_state:[
-            #    MessageHandler(Filters.text, update_patient_info_SPO2)
-            #],
 
             SPO2:[
                 MessageHandler(Filters.text, update_patient_info_PR)
