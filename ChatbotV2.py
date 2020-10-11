@@ -37,12 +37,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice = range(7)
-SPO2, PR, BP, INSTRUCTIONS = range(7,11)
+SPO2, PR, BP, ANTIBIOTIC, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, APACHE_IV, HAS_BLED, MDRD_GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(7,29)
 
 
 reply_keyboard = [['Get','Update']]
 
-editable_columns_list = ['SPO2', 'PR', 'BP', 'INSTRUCTIONS']
+editable_columns_list = ['SPO2', 'PR', 'BP', 'ANTIBIOTIC(S)', 'STOOL' , 'FEVER', 'FEED', 'I/O', 'RTA/DRAIN', 'Hemogram', 'Coagulogram', 'SE', 'RFT', 'ABG/VBG', 'RBS', 'Special Ix', 'APACHE IV', 'HAS BLED', 'MDRD GFR', 'SOFA score', 'Other Scores', 'INSTRUCTIONS',]
 
 
 # Read Google sheet data
@@ -62,6 +62,7 @@ def start(update, context):
 
     # get the instance sheet of the Spreadsheet
     sheet = client.open("Bot Spreadsheet").sheet1
+    context.user_data['sheet'] = sheet
 
     # get all the records of the data
     data = sheet.get_all_records()
@@ -82,6 +83,7 @@ def get_patient_id(update, context):
     df_data_patient_id = df_data[df_data['id'] == int(patient_id)]
     df_data_last_row = df_data_patient_id.iloc[[-1]]
     context.user_data['patient_id_row'] = df_data_last_row
+
 
     # Get/Update
     button_labels = [['Get'], ['Update']]
@@ -119,7 +121,7 @@ def update_patient_info_SPO2(update, context):
     column = editable_columns_list[column_index]
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 
 def update_patient_info_PR(update, context):
@@ -128,7 +130,7 @@ def update_patient_info_PR(update, context):
     context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_BP(update, context):
     column_index = 2
@@ -136,18 +138,163 @@ def update_patient_info_BP(update, context):
     context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
-def update_patient_info_Instructions(update, context):
+def update_patient_info_ANTIBIOTIC(update, context):
     column_index = 3
     column = editable_columns_list[column_index]
     context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_STOOL(update, context):
+    column_index = 4
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_FEVER(update, context):
+    column_index = 5
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_FEED(update, context):
+    column_index = 6
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_I_O(update, context):
+    column_index = 7
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_RTA_DRAIN(update, context):
+    column_index = 8
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_Hemogram(update, context):
+    column_index = 9
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_Coagulogram(update, context):
+    column_index = 10
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_SE(update, context):
+    column_index = 11
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_RFT(update, context):
+    column_index = 12
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_ABG_VBG(update, context):
+    column_index = 13
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_RBS(update, context):
+    column_index = 14
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_Special_Ix(update, context):
+    column_index = 15
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_APACHE_IV(update, context):
+    column_index = 16
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_HAS_BLED(update, context):
+    column_index = 17
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_MDRD_GFR(update, context):
+    column_index = 18
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_SOFA_score(update, context):
+    column_index = 19
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_Other_Scores(update, context):
+    column_index = 20
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
+def update_patient_info_Instructions(update, context):
+    column_index = 21
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+
 
 def received_information(update, context):
-    column_index = 4
+    column_index = 22
     context.user_data[editable_columns_list[column_index-1]] = update.message.text
     log_received_information(update, context)
 
@@ -166,7 +313,6 @@ def log_received_information(update, context):
     return CONFIRM
 
 def edit(update, context):
-    update.message.reply_text('Under restruction...')
     button_labels = [['SPO2'], ['PR'], ['BP'], ['ANTIBIOTIC(S)'], ['STOOL'], ['FEVER'], ['FEED'], ['I/O'], ['RTA/DRAIN'], ['Hemogram'], ['Coagulogram'], ['SE'], ['RFT'], ['ABG/VBG'], ['RBS'], ['Special Ix'], ['APACHE IV'], ['HAS BLED'], ['MDRD GFR'], ['SOFA score'],['Other Scores'], ['INSTRUCTIONS']]
     reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
     update.message.reply_text('Which field you need to edit ?', reply_markup=reply_keyboard)
@@ -195,6 +341,12 @@ def edit_choice(update, context):
     return CONFIRM
 
 def done(update, context):
+    for column in editable_columns_list:
+        context.user_data['patient_id_row'][column] =  context.user_data[column]
+    context.user_data['datatable'] = context.user_data['datatable'].append(context.user_data['patient_id_row'])
+    last_row_list = context.user_data['patient_id_row'].values[0].tolist()
+    context.user_data['sheet'].insert_row(last_row_list, len(context.user_data['datatable']))
+
     user_data = context.user_data
     if 'choice' in user_data:
         del user_data['choice']
@@ -214,7 +366,7 @@ def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
-    updater = Updater("1366155886:AAH98WssxAmqqnv6xXdWPVsco9-qKtgHWP0", use_context=True)
+    updater = Updater("1372061263:AAEcokfTYO9LnvdM_njDzl3XNHSCqtr9h2E", use_context=True)
 
     print('Bot has started ...')
 
@@ -248,6 +400,78 @@ def main():
             ],
             
             BP:[
+                MessageHandler(Filters.text, update_patient_info_ANTIBIOTIC)
+            ],
+
+            ANTIBIOTIC: [
+                MessageHandler(Filters.text, update_patient_info_STOOL)
+            ],
+
+            STOOL: [
+                MessageHandler(Filters.text, update_patient_info_FEVER)
+            ],
+
+            FEVER: [
+                MessageHandler(Filters.text, update_patient_info_FEED)
+            ],
+
+            FEED: [
+                MessageHandler(Filters.text, update_patient_info_I_O)
+            ],
+
+            I_O: [
+                MessageHandler(Filters.text, update_patient_info_RTA_DRAIN)
+            ],
+
+            RTA_DRAIN: [
+                MessageHandler(Filters.text, update_patient_info_Hemogram)
+            ],
+
+            Hemogram: [
+                MessageHandler(Filters.text, update_patient_info_Coagulogram)
+            ],
+
+            Coagulogram: [
+                MessageHandler(Filters.text, update_patient_info_SE)
+            ],
+
+            SE: [
+                MessageHandler(Filters.text, update_patient_info_RFT)
+            ],
+
+            RFT: [
+                MessageHandler(Filters.text, update_patient_info_ABG_VBG)
+            ],
+
+            ABG_VBG: [
+                MessageHandler(Filters.text, update_patient_info_RBS)
+            ],
+
+            RBS: [
+                MessageHandler(Filters.text, update_patient_info_Special_Ix)
+            ],
+
+            Special_Ix: [
+                MessageHandler(Filters.text, update_patient_info_APACHE_IV)
+            ],
+
+            APACHE_IV: [
+                MessageHandler(Filters.text, update_patient_info_HAS_BLED)
+            ],
+
+            HAS_BLED: [
+                MessageHandler(Filters.text, update_patient_info_MDRD_GFR)
+            ],
+
+            MDRD_GFR: [
+                MessageHandler(Filters.text, update_patient_info_SOFA_score)
+            ],
+
+            SOFA_score: [
+                MessageHandler(Filters.text, update_patient_info_Other_Scores)
+            ],
+
+            Other_Scores: [
                 MessageHandler(Filters.text, update_patient_info_Instructions)
             ],
 
