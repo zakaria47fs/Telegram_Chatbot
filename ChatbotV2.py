@@ -71,6 +71,8 @@ def start(update, context):
     df_data = pd.DataFrame.from_dict(data)
     context.user_data['datatable']  = df_data
 
+
+
     update.message.reply_text(f'Hi {fname}, Enter the Patient_Id')
 
     return choosing_patient_id
@@ -120,182 +122,312 @@ def update_patient_info_SPO2(update, context):
     column_index = 0
     column = editable_columns_list[column_index]
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
-
 
 def update_patient_info_PR(update, context):
     column_index = 1
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower()=='same':
+        context.user_data[editable_columns_list[column_index - 1]] = context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_BP(update, context):
     column_index = 2
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_ANTIBIOTIC(update, context):
     column_index = 3
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_STOOL(update, context):
     column_index = 4
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_FEVER(update, context):
     column_index = 5
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_FEED(update, context):
     column_index = 6
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_I_O(update, context):
     column_index = 7
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_RTA_DRAIN(update, context):
     column_index = 8
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_Hemogram(update, context):
     column_index = 9
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_Coagulogram(update, context):
     column_index = 10
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_SE(update, context):
     column_index = 11
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_RFT(update, context):
     column_index = 12
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_ABG_VBG(update, context):
     column_index = 13
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_RBS(update, context):
     column_index = 14
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_Special_Ix(update, context):
     column_index = 15
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_APACHE_IV(update, context):
     column_index = 16
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_HAS_BLED(update, context):
     column_index = 17
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_MDRD_GFR(update, context):
     column_index = 18
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_SOFA_score(update, context):
     column_index = 19
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_Other_Scores(update, context):
     column_index = 20
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 def update_patient_info_Instructions(update, context):
     column_index = 21
     column = editable_columns_list[column_index]
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
 
 
 def received_information(update, context):
     column_index = 22
-    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     log_received_information(update, context)
 
     return CONFIRM
