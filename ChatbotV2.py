@@ -36,8 +36,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-choosing_patient_id, update_or_get, update_state, CONFIRM = range(4)
-SPO2, PR, BP, INSTRUCTIONS = range(4,8)
+choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice = range(7)
+SPO2, PR, BP, INSTRUCTIONS = range(7,11)
 
 
 reply_keyboard = [['Get','Update']]
@@ -105,40 +105,55 @@ def get_patient_info(update, context):
     
     return None
 
+'''
 def update_case(update, context):
-    return update_state 
-
-
-def update_patient_info_SPO2(update, context):
     column = 'SPO2'
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    context.user_data[column] = update.message.text
+    
+    return update_state 
+'''
+
+def update_patient_info_SPO2(update, context):
+    column_index = 0
+    column = editable_columns_list[column_index]
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
     return eval(column)
 
 
 def update_patient_info_PR(update, context):
-    column = 'PR'
+    column_index = 1
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    context.user_data[column] = update.message.text
     return eval(column)
 
 def update_patient_info_BP(update, context):
-    column = 'BP'
+    column_index = 2
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    context.user_data[column] = update.message.text
     return eval(column)
 
 def update_patient_info_Instructions(update, context):
-    column = 'INSTRUCTIONS'
+    column_index = 3
+    column = editable_columns_list[column_index]
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    context.user_data[column] = update.message.text
     return eval(column)
 
 def received_information(update, context):
+    column_index = 4
+    context.user_data[editable_columns_list[column_index-1]] = update.message.text
+    log_received_information(update, context)
+
+    return CONFIRM
+
+def log_received_information(update, context):
     text = ''
     for column in editable_columns_list:
         text = text + '\n' + column + ': ' + context.user_data[column]
@@ -152,9 +167,32 @@ def received_information(update, context):
 
 def edit(update, context):
     update.message.reply_text('Under restruction...')
+    button_labels = [['SPO2'], ['PR'], ['BP'], ['ANTIBIOTIC(S)'], ['STOOL'], ['FEVER'], ['FEED'], ['I/O'], ['RTA/DRAIN'], ['Hemogram'], ['Coagulogram'], ['SE'], ['RFT'], ['ABG/VBG'], ['RBS'], ['Special Ix'], ['APACHE IV'], ['HAS BLED'], ['MDRD GFR'], ['SOFA score'],['Other Scores'], ['INSTRUCTIONS']]
+    reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
+    update.message.reply_text('Which field you need to edit ?', reply_markup=reply_keyboard)
 
+    return wait_edit_choice
+
+
+def get_column_to_edit(update, context):
+    column = update.message.text
+    context.user_data['field_to_edit'] = column
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Old {column} value: {context.user_data[column]}'
+                                f'\nEnter {column} new value', reply_markup=markup)
+
+    return edit_selected_choice
+
+
+def edit_choice(update, context):
+    column = context.user_data['field_to_edit']
+    context.user_data[column] = update.message.text
+    if 'field_to_edit' in context.user_data:
+        del context.user_data['field_to_edit']
+
+    log_received_information(update, context)
+    
     return CONFIRM
-
 
 def done(update, context):
     user_data = context.user_data
@@ -162,7 +200,8 @@ def done(update, context):
         del user_data['choice']
 
     update.message.reply_text("I learned these facts about you:"
-                              "Until next time!")
+                              "Until next time!"
+                              "\nBye!")
 
     user_data.clear()
     return ConversationHandler.END
@@ -193,12 +232,12 @@ def main():
 
             update_or_get: [
                 MessageHandler(Filters.regex('^Get$'), get_patient_info),
-                MessageHandler(Filters.regex('^Update$'), update_case)
+                MessageHandler(Filters.regex('^Update$'), update_patient_info_SPO2)
             ],
 
-            update_state:[
-                MessageHandler(Filters.text, update_patient_info_SPO2)
-            ],
+            #update_state:[
+            #    MessageHandler(Filters.text, update_patient_info_SPO2)
+            #],
 
             SPO2:[
                 MessageHandler(Filters.text, update_patient_info_PR)
@@ -218,7 +257,16 @@ def main():
 
             CONFIRM:[
                 MessageHandler(Filters.regex('^YES$'), done),
-                MessageHandler(Filters.regex('^NO$'), edit)]
+                MessageHandler(Filters.regex('^NO$'), edit)
+            ],
+            
+            wait_edit_choice:[
+                MessageHandler(Filters.text, get_column_to_edit)
+            ],
+
+            edit_selected_choice:[
+                MessageHandler(Filters.text, edit_choice)
+            ]
         },
 
         fallbacks=[CommandHandler('Done', done),
@@ -226,7 +274,7 @@ def main():
     )
 
     dp.add_handler(conv_handler)
-    dp.add_handler(MessageHandler(Filters.text, log_user_message))
+    dp.add_handler(MessageHandler(Filters.text, log_user_message), group=1)
 
     # Start the Bot
     updater.start_polling()
