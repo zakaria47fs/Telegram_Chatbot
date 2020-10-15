@@ -206,9 +206,9 @@ def confirmchoice(bot,update):
 
 def editchoice(bot, update):
 
-    global Conversation_type
+    global Conversation_type_dict
     global SPO2, PR, BP, ANTIBIOTIC, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, APACHE_IV, HAS_BLED, MDRD_GFR, SOFA_score, Other_Scores, INSTRUCTIONS
-    global df_data_last_row
+    global df_data_last_row_dict
     global State_dict
     
     chat_id_str = str(update.message.chat_id)
@@ -218,10 +218,12 @@ def editchoice(bot, update):
 
         bot.send_message(chat_id=update.message.chat_id, text='Enter the new value')
         column_index = editable_columns_list.index(update.message.text)
-        State_dict[chat_id_str] = column_index+27
+        State_dict[chat_id_str] = column_index + 27
 
     if 27<=State_dict[chat_id_str]<=47 and Conversation_type_dict[chat_id_str] == 'Update':
-        globals()[editable_columns_list[State_dict[chat_id_str]-27].replace('/','_').replace(' ','_').replace('(S)','')][chat_id_str] = update.message.text
+        new_value = update.message.text
+        print(new_value)
+        globals()[editable_columns_list[State_dict[chat_id_str]-27].replace('/','_').replace(' ','_').replace('(S)','')][chat_id_str] = new_value
         Get(bot,update)
         confirm(bot, update)
         State_dict[chat_id_str] = 25

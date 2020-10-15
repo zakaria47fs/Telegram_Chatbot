@@ -37,12 +37,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice = range(7)
-SPO2, PR, BP, ANTIBIOTIC, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, APACHE_IV, HAS_BLED, MDRD_GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(7,29)
+Ventilation, SPO2, PR, BP, INOTROPE, ANALGESIA, SEDATION, ANTIBIOTIC, Other_drugs, INSULIN_infusion, ULCER_PROPHYLAXIS, REMDESIVIR, CLEXANE, METHYLPREDNISOLONE_EQUI_DOSE_DEXA, TOCILIZUMAB, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, Date, IL_6, Ferritin, CRP, D_Dimer, LDH, CxR, APACHE_IV, HAS_BLED, MDRD_GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(7,47)
 
 
 reply_keyboard = [['Get','Update']]
 
-editable_columns_list = ['SPO2', 'PR', 'BP', 'ANTIBIOTIC(S)', 'STOOL' , 'FEVER', 'FEED', 'I/O', 'RTA/DRAIN', 'Hemogram', 'Coagulogram', 'SE', 'RFT', 'ABG/VBG', 'RBS', 'Special Ix', 'APACHE IV', 'HAS BLED', 'MDRD GFR', 'SOFA score', 'Other Scores', 'INSTRUCTIONS',]
+editable_columns_list = ['Ventilation', 'SPO2', 'PR', 'BP', 'INOTROPE', 'ANALGESIA', 'SEDATION', 'ANTIBIOTIC(S)', 'Other drugs', 'INSULIN infusion', 'ULCER PROPHYLAXIS', 'REMDESIVIR', 'CLEXANE', 'METHYLPREDNISOLONE EQUI DOSE DEXA (1.5:8)', 'TOCILIZUMAB', 'STOOL' , 'FEVER', 'FEED', 'I/O', 'RTA/DRAIN', 'Hemogram', 'Coagulogram', 'SE', 'RFT', 'ABG/VBG', 'RBS', 'Special Ix', 'Date', 'IL 6', 'Ferritin', 'CRP', 'D Dimer', 'LDH', 'CxR', 'APACHE IV', 'HAS BLED', 'MDRD GFR', 'SOFA score', 'Other Scores', 'INSTRUCTIONS',]
 
 
 # Read Google sheet data
@@ -118,16 +118,18 @@ def update_case(update, context):
     return update_state 
 '''
 
-def update_patient_info_SPO2(update, context):
+def update_patient_info_Ventilation(update, context):
     column_index = 0
     column = editable_columns_list[column_index]
     markup = ForceReply(True, False)
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_PR(update, context):
+
+
+def update_patient_info_SPO2(update, context):
     column_index = 1
     column = editable_columns_list[column_index]
     if update.message.text.lower()=='same':
@@ -135,26 +137,22 @@ def update_patient_info_PR(update, context):
     else:
         context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_BP(update, context):
+
+def update_patient_info_PR(update, context):
     column_index = 2
     column = editable_columns_list[column_index]
-    if update.message.text.lower() == 'same':
-        context.user_data[editable_columns_list[column_index - 1]] = \
-        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    if update.message.text.lower()=='same':
+        context.user_data[editable_columns_list[column_index - 1]] = context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
     else:
-        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+        context.user_data[editable_columns_list[column_index-1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_ANTIBIOTIC(update, context):
+def update_patient_info_BP(update, context):
     column_index = 3
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -163,12 +161,11 @@ def update_patient_info_ANTIBIOTIC(update, context):
     else:
         context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_STOOL(update, context):
+
+def update_patient_info_INOTROPE(update, context):
     column_index = 4
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -180,9 +177,10 @@ def update_patient_info_STOOL(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_FEVER(update, context):
+
+def update_patient_info_ANALGESIA(update, context):
     column_index = 5
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -194,9 +192,9 @@ def update_patient_info_FEVER(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_FEED(update, context):
+def update_patient_info_SEDATION(update, context):
     column_index = 6
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -208,9 +206,10 @@ def update_patient_info_FEED(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_I_O(update, context):
+
+def update_patient_info_ANTIBIOTIC(update, context):
     column_index = 7
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -222,9 +221,10 @@ def update_patient_info_I_O(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_RTA_DRAIN(update, context):
+
+def update_patient_info_Other_drugs(update, context):
     column_index = 8
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -236,9 +236,10 @@ def update_patient_info_RTA_DRAIN(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_Hemogram(update, context):
+
+def update_patient_info_INSULIN_infusion(update, context):
     column_index = 9
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -250,9 +251,10 @@ def update_patient_info_Hemogram(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_Coagulogram(update, context):
+
+def update_patient_info_ULCER_PROPHYLAXIS(update, context):
     column_index = 10
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -264,9 +266,10 @@ def update_patient_info_Coagulogram(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_SE(update, context):
+
+def update_patient_info_REMDESIVIR(update, context):
     column_index = 11
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -278,9 +281,10 @@ def update_patient_info_SE(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_RFT(update, context):
+
+def update_patient_info_CLEXANE(update, context):
     column_index = 12
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -292,9 +296,10 @@ def update_patient_info_RFT(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_ABG_VBG(update, context):
+
+def update_patient_info_METHYLPREDNISOLONE_EQUI_DOSE_DEXA(update, context):
     column_index = 13
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -306,9 +311,10 @@ def update_patient_info_ABG_VBG(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_RBS(update, context):
+
+def update_patient_info_TOCILIZUMAB(update, context):
     column_index = 14
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -320,9 +326,10 @@ def update_patient_info_RBS(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_Special_Ix(update, context):
+
+def update_patient_info_STOOL(update, context):
     column_index = 15
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -331,12 +338,10 @@ def update_patient_info_Special_Ix(update, context):
     else:
         context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_APACHE_IV(update, context):
+def update_patient_info_FEVER(update, context):
     column_index = 16
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -345,12 +350,10 @@ def update_patient_info_APACHE_IV(update, context):
     else:
         context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_HAS_BLED(update, context):
+def update_patient_info_FEED(update, context):
     column_index = 17
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -359,12 +362,10 @@ def update_patient_info_HAS_BLED(update, context):
     else:
         context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_MDRD_GFR(update, context):
+def update_patient_info_I_O(update, context):
     column_index = 18
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -373,12 +374,10 @@ def update_patient_info_MDRD_GFR(update, context):
     else:
         context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_SOFA_score(update, context):
+def update_patient_info_RTA_DRAIN(update, context):
     column_index = 19
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -387,12 +386,10 @@ def update_patient_info_SOFA_score(update, context):
     else:
         context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_Other_Scores(update, context):
+def update_patient_info_Hemogram(update, context):
     column_index = 20
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
@@ -401,13 +398,84 @@ def update_patient_info_Other_Scores(update, context):
     else:
         context.user_data[editable_columns_list[column_index - 1]] = update.message.text
     markup = ForceReply(True, False)
-    old_value = context.user_data['patient_id_row'][column].values[0]
-    update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
-def update_patient_info_Instructions(update, context):
+def update_patient_info_Coagulogram(update, context):
     column_index = 21
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_SE(update, context):
+    column_index = 22
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_RFT(update, context):
+    column_index = 23
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_ABG_VBG(update, context):
+    column_index = 24
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_RBS(update, context):
+    column_index = 25
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_Special_Ix(update, context):
+    column_index = 26
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_Date(update, context):
+    column_index = 27
     column = editable_columns_list[column_index]
     if update.message.text.lower() == 'same':
         context.user_data[editable_columns_list[column_index - 1]] = \
@@ -418,11 +486,175 @@ def update_patient_info_Instructions(update, context):
     old_value = context.user_data['patient_id_row'][column].values[0]
     update.message.reply_text(f'Old {column} value: {old_value}')
     update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
-    return eval(column.replace('/','_').replace(' ','_').replace('(S)',''))
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_IL_6(update, context):
+    column_index = 28
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_Ferritin(update, context):
+    column_index = 29
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_CRP(update, context):
+    column_index = 30
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_D_Dimer(update, context):
+    column_index = 31
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_LDH(update, context):
+    column_index = 32
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_CxR(update, context):
+    column_index = 33
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    old_value = context.user_data['patient_id_row'][column].values[0]
+    update.message.reply_text(f'Old {column} value: {old_value}')
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_APACHE_IV(update, context):
+    column_index = 34
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+
+def update_patient_info_HAS_BLED(update, context):
+    column_index = 35
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_MDRD_GFR(update, context):
+    column_index = 36
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_SOFA_score(update, context):
+    column_index = 37
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_Other_Scores(update, context):
+    column_index = 38
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
+
+def update_patient_info_Instructions(update, context):
+    column_index = 39
+    column = editable_columns_list[column_index]
+    if update.message.text.lower() == 'same':
+        context.user_data[editable_columns_list[column_index - 1]] = \
+        context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+    else:
+        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}',reply_markup=markup)
+    return eval(column.replace('/','_').replace(' ','_').replace('(S)','').replace(' (1.5:8)',''))
 
 
 def received_information(update, context):
-    column_index = 22
+    column_index = 40
     if update.message.text.lower() == 'same':
         context.user_data[editable_columns_list[column_index - 1]] = \
         context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
@@ -445,7 +677,7 @@ def log_received_information(update, context):
     return CONFIRM
 
 def edit(update, context):
-    button_labels = [['SPO2'], ['PR'], ['BP'], ['ANTIBIOTIC(S)'], ['STOOL'], ['FEVER'], ['FEED'], ['I/O'], ['RTA/DRAIN'], ['Hemogram'], ['Coagulogram'], ['SE'], ['RFT'], ['ABG/VBG'], ['RBS'], ['Special Ix'], ['APACHE IV'], ['HAS BLED'], ['MDRD GFR'], ['SOFA score'],['Other Scores'], ['INSTRUCTIONS']]
+    button_labels = [['Ventilation'], ['SPO2'], ['PR'], ['BP'], ['INOTROPE'], ['ANALGESIA'], ['SEDATION'], ['ANTIBIOTIC(S)'], ['Other drugs'], ['INSULIN infusion'], ['ULCER PROPHYLAXIS'], ['REMDESIVIR'], ['CLEXANE'], ['METHYLPREDNISOLONE EQUI DOSE DEXA (1.5:8)'], ['TOCILIZUMAB'], ['STOOL'], ['FEVER'], ['FEED'], ['I/O'], ['RTA/DRAIN'], ['Hemogram'], ['Coagulogram'], ['SE'], ['RFT'], ['ABG/VBG'], ['RBS'], ['Special Ix'], ['Date'], ['IL 6'], ['Ferritin'], ['CRP'], ['D Dimer'], ['LDH'], ['CxR'], ['APACHE IV'], ['HAS BLED'], ['MDRD GFR'], ['SOFA score'],['Other Scores'], ['INSTRUCTIONS']]
     reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
     update.message.reply_text('Which field you need to edit ?', reply_markup=reply_keyboard)
 
@@ -523,6 +755,10 @@ def main():
             #    MessageHandler(Filters.text, update_patient_info_SPO2)
             #],
 
+            Ventilation:[
+                MessageHandler(Filters.text, update_patient_info_SPO2)
+            ],
+
             SPO2:[
                 MessageHandler(Filters.text, update_patient_info_PR)
             ],
@@ -532,10 +768,50 @@ def main():
             ],
             
             BP:[
+                MessageHandler(Filters.text, update_patient_info_INOTROPE)
+            ],
+
+            INOTROPE: [
+                MessageHandler(Filters.text, update_patient_info_ANALGESIA)
+            ],
+
+            ANALGESIA: [
+                MessageHandler(Filters.text, update_patient_info_SEDATION)
+            ],
+
+            SEDATION: [
                 MessageHandler(Filters.text, update_patient_info_ANTIBIOTIC)
             ],
 
             ANTIBIOTIC: [
+                MessageHandler(Filters.text, update_patient_info_Other_drugs)
+            ],
+
+            Other_drugs: [
+                MessageHandler(Filters.text, update_patient_info_INSULIN_infusion)
+            ],
+
+            INSULIN_infusion: [
+                MessageHandler(Filters.text, update_patient_info_ULCER_PROPHYLAXIS)
+            ],
+
+            ULCER_PROPHYLAXIS: [
+                MessageHandler(Filters.text, update_patient_info_REMDESIVIR)
+            ],
+
+            REMDESIVIR: [
+                MessageHandler(Filters.text, update_patient_info_CLEXANE)
+            ],
+
+            CLEXANE: [
+                MessageHandler(Filters.text, update_patient_info_METHYLPREDNISOLONE_EQUI_DOSE_DEXA)
+            ],
+
+            METHYLPREDNISOLONE_EQUI_DOSE_DEXA : [
+                MessageHandler(Filters.text, update_patient_info_TOCILIZUMAB)
+            ],
+
+            TOCILIZUMAB: [
                 MessageHandler(Filters.text, update_patient_info_STOOL)
             ],
 
@@ -584,6 +860,34 @@ def main():
             ],
 
             Special_Ix: [
+                MessageHandler(Filters.text, update_patient_info_Date)
+            ],
+
+            Date: [
+                MessageHandler(Filters.text, update_patient_info_IL_6)
+            ],
+
+            IL_6: [
+                MessageHandler(Filters.text, update_patient_info_Ferritin)
+            ],
+
+            Ferritin: [
+                MessageHandler(Filters.text, update_patient_info_CRP)
+            ],
+
+            CRP: [
+                MessageHandler(Filters.text, update_patient_info_D_Dimer)
+            ],
+
+            D_Dimer: [
+                MessageHandler(Filters.text, update_patient_info_LDH)
+            ],
+
+            LDH: [
+                MessageHandler(Filters.text, update_patient_info_CxR)
+            ],
+
+            CxR: [
                 MessageHandler(Filters.text, update_patient_info_APACHE_IV)
             ],
 
