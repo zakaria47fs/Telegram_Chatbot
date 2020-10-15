@@ -106,7 +106,7 @@ def get_patient_info(update, context):
 
     update.message.reply_text(text)
     update.message.reply_text("Enter 'Update' to edit patient information or click on '/Done' to finish the chat")
-    
+
     return None
 
 '''
@@ -752,7 +752,7 @@ def log_received_information(update, context):
     button_labels = [['YES'], ['NO']]
     reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
     update.message.reply_text('Confirm please', reply_markup=reply_keyboard)
-    
+
     return CONFIRM
 
 def edit(update, context):
@@ -780,7 +780,7 @@ def edit_choice(update, context):
         del context.user_data['field_to_edit']
 
     log_received_information(update, context)
-    
+
     return CONFIRM
 
 def done(update, context):
