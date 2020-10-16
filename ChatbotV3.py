@@ -28,7 +28,8 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 from collections import defaultdict
-
+import pytz
+from datetime import datetime
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -211,10 +212,11 @@ def done(update, context):
 
         # convert the json to dataframe
         df_data = pd.DataFrame.from_dict(data)
-
+        IST = pytz.timezone('Asia/Kolkata')
         for column in editable_columns_list:
             context.user_data['patient_id_row'][column] =  context.user_data[column]
-
+        context.user_data['patient_id_row'].at[context.user_data['patient_id_row'].index[-1], 'Save time'] = str(datetime.now(IST))
+        print(context.user_data['patient_id_row'])
         df_data = df_data.append(context.user_data['patient_id_row'])
         last_row_list = context.user_data['patient_id_row'].values[0].tolist()
         sheet.insert_row(last_row_list, len(df_data)+1)
