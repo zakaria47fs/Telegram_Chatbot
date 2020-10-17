@@ -30,6 +30,7 @@ import pandas as pd
 from collections import defaultdict
 import pytz
 from datetime import datetime
+import re
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -78,6 +79,18 @@ def start(update, context):
 
 
 def get_patient_id(update, context):
+    '''''
+    value = update.message.text
+    name_age = value.split("_")
+    name = name_age[0]
+    age = name_age[1]
+    df_data = context.user_data['datatable']
+    df_data_patient_name_age = df_data[(df_data['Patient Name'] == str(name)) & (df_data['Age/Sex'].str.contains(f'^{age}.*') == True)]
+    df_data_patient_name_age_last_row = df_data_patient_name_age.iloc[[-1]]
+    '''''
+
+
+
     patient_id = update.message.text
     context.user_data['patient_id'] = patient_id
     df_data = context.user_data['datatable']
