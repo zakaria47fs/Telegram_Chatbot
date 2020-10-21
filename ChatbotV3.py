@@ -11,6 +11,17 @@ Example of a bot-user conversation using ConversationHandler.
 Send /start to initiate the conversation.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
+
+packages:
+pip install gspread
+pip install gspread-dataframe
+pip install telegram
+pip install --upgrade google-api-python-client oauth2client
+pip install python-telegram-bot
+pip install numpy
+pip install pandas
+pip install pytz
+pip install tabulate
 """
 
 import logging
