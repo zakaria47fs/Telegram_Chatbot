@@ -32,7 +32,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 
 import telegram
 from telegram.ext import Updater,CommandHandler,MessageHandler,Filters,CallbackQueryHandler
-from telegram import InlineKeyboardButton,InlineKeyboardMarkup,KeyboardButton,ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton,InlineKeyboardMarkup,KeyboardButton,ReplyKeyboardMarkup,ReplyKeyboardRemove
 import logging
 from tabulate import tabulate
 import gspread
@@ -49,14 +49,15 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice = range(7)
-GCS, Ventilation, SPO2, PR, BP, INOTROPE, ANALGESIA, SEDATION, ANTIBIOTIC, Other_drugs, INSULIN_infusion, ULCER_PROPHYLAXIS, REMDESIVIR, CLEXANE, METHYLPREDNISOLONE_EQUI_DOSE_DEXA, TOCILIZUMAB, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, Date, IL_6, Ferritin, CRP, D_Dimer, LDH, CxR, APACHE_IV, HAS_BLED, MDRD_GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(7,48)
-
+choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice, patient_id, enter_new_values = range(9)
+GCS, Ventilation, SPO2, PR, BP, INOTROPE, ANALGESIA, SEDATION, ANTIBIOTIC, Other_drugs, INSULIN_infusion, ULCER_PROPHYLAXIS, REMDESIVIR, CLEXANE, METHYLPREDNISOLONE_EQUI_DOSE_DEXA, TOCILIZUMAB, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, Date, IL_6, Ferritin, CRP, D_Dimer, LDH, CxR, APACHE_IV, HAS_BLED, MDRD_GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(9,50)
+id, Patient_Name, Age_Sex, ROOM_Number, Primary_Physician, Comorbidities, Day_of_stay, Day_of_ICU_stay = range(50,58)
+antibiotic_value_to_remove = 58
 
 reply_keyboard = [['Get','Update']]
 
 editable_columns_list = ['GCS', 'Ventilation', 'SPO2', 'PR', 'BP', 'INOTROPE', 'ANALGESIA', 'SEDATION', 'ANTIBIOTIC(S)', 'Other drugs', 'INSULIN infusion', 'ULCER PROPHYLAXIS', 'REMDESIVIR', 'CLEXANE', 'METHYLPREDNISOLONE EQUI DOSE DEXA (1.5:8)', 'TOCILIZUMAB', 'STOOL' , 'FEVER', 'FEED', 'I/O', 'RTA/DRAIN', 'Hemogram', 'Coagulogram', 'SE', 'RFT', 'ABG/VBG', 'RBS', 'Special Ix', 'Date', 'IL 6', 'Ferritin', 'CRP', 'D Dimer', 'LDH', 'CxR', 'APACHE IV', 'HAS BLED', 'MDRD GFR', 'SOFA score', 'Other Scores', 'INSTRUCTIONS',]
-
+editable_columns_list_register = ['id', 'Patient Name', 'Age/Sex', 'Room Number', 'Primary Physician', 'Comorbidities', 'Day of stay', 'Day of ICU stay' ]
 
 # Read Google sheet data
 # define the scope
@@ -88,30 +89,71 @@ def start(update, context):
 
     return choosing_patient_id
 
+def register(update, context):
+    fname = update.message.from_user.first_name
+    # authorize the clientsheet
+    client = gspread.authorize(creds)
+
+    # get the instance sheet of the Spreadsheet
+    sheet = client.open("Bot Spreadsheet").sheet1
+    context.user_data['sheet'] = sheet
+
+    # get all the records of the data
+    data = sheet.get_all_records()
+
+    # convert the json to dataframe
+    df_data = pd.DataFrame.from_dict(data)
+    context.user_data['datatable'] = df_data
+    context.user_data['column_index_register'] = 1
+    update.message.reply_text(f'Hi {fname}, Enter the new patient id')
+
+    return enter_new_values
+
+def new_values(update, context):
+
+    column_index_register = context.user_data['column_index_register']
+    if column_index_register == 1:
+        context.user_data['conversation_type'] = 'register'
+        context.user_data['id'] = update.message.text
+
+    column = editable_columns_list_register[column_index_register]
+
+    if column_index_register > 1:
+            context.user_data[editable_columns_list_register[column_index_register - 1]] = update.message.text
+
+    markup = ForceReply(True, False)
+    update.message.reply_text(f'Enter the new {column}', reply_markup=markup)
+    context.user_data['column_index_register'] = column_index_register + 1
+    if column_index_register == 7:
+        return Day_of_ICU_stay
+
+    return patient_id
+
 
 def get_patient_id(update, context):
-    '''''
-    value = update.message.text
-    name_age = value.split("_")
-    name = name_age[0]
-    age = name_age[1]
-    df_data = context.user_data['datatable']
-    df_data_patient_name_age = df_data[(df_data['Patient Name'] == str(name)) & (df_data['Age/Sex'].str.contains(f'^{age}.*') == True)]
-    df_data_patient_name_age_last_row = df_data_patient_name_age.iloc[[-1]]
-    '''''
-
-
 
     patient_id = update.message.text
     context.user_data['patient_id'] = patient_id
     df_data = context.user_data['datatable']
-    df_data_patient_id = df_data[df_data['id'] == int(patient_id)]
+    df_data_patient_id = 'Not found'
+    
+    if patient_id.isdigit() and (int(patient_id) in df_data['id'].values.tolist()):
+        df_data_patient_id = df_data[df_data['id'] == int(patient_id)]
+    elif '_' in patient_id:
+        name_age = patient_id.split("_")
+        name = name_age[0]
+        age = name_age[1]
+        df_data_patient_id = df_data[(df_data['Patient Name'] == str(name)) & (df_data['Age/Sex'].str.contains(f'^{age}/.*')==True)]
+    
+    if ((type(df_data_patient_id)== str) and (df_data_patient_id == 'Not found')) or len(df_data_patient_id)==0:
+        update.message.reply_text(text="The patient id you entered doesn't exit in our database, please enter a valid one!")
+        return choosing_patient_id
+
     df_data_last_row = df_data_patient_id.iloc[[-1]]
     context.user_data['patient_id_row'] = df_data_last_row
     context.user_data['column_index'] = 0
     # Get/Update
     button_labels = [['Get'], ['Update']]
-    #reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
     markup = ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
     update.message.reply_text(text='Get or Update ?',reply_markup=markup)
 
@@ -127,7 +169,6 @@ def get_patient_info(update, context):
 
     update.message.reply_text(text)
     button_labels = [['Update'], ['/Done']]
-    #reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
     markup = ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
     update.message.reply_text("Enter 'Update' to edit patient information or click on '/Done' to finish the chat", reply_markup=markup)
     
@@ -145,6 +186,9 @@ def update_patient_info(update, context):
     if column_index>0:
         if update.message.text.lower()=='same':
             context.user_data[editable_columns_list[column_index - 1]] = context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+        # Antibiotics column
+        elif column_index==9:
+            context.user_data[editable_columns_list[8]] =  context.user_data['patient_id_row'][editable_columns_list[8]].values[0] + '\n' + update.message.text
         else:
             context.user_data[editable_columns_list[column_index-1]] = update.message.text
     
@@ -171,31 +215,53 @@ def update_patient_info(update, context):
 
 
 def received_information(update, context):
-    column_index = context.user_data['column_index']
-    if update.message.text.lower() == 'same':
-        context.user_data[editable_columns_list[column_index - 1]] = context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
-    else:
-        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+
+    if context.user_data['conversation_type'] == 'Update':
+        column_index = context.user_data['column_index']
+        if update.message.text.lower() == 'same':
+            context.user_data[editable_columns_list[column_index - 1]] = context.user_data['patient_id_row'][editable_columns_list[column_index - 1]].values[0]
+        else:
+            context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+
+    if context.user_data['conversation_type'] == 'register' :
+        column_index_register = context.user_data['column_index_register']
+        context.user_data[editable_columns_list_register[column_index_register - 1]] = update.message.text
     log_received_information(update, context)
 
     return CONFIRM
 
 def log_received_information(update, context):
     text = ''
-    for column in editable_columns_list:
-        text = text + '\n' + column + ': ' + str(context.user_data[column])
-    update.message.reply_text(text)
+    if context.user_data['conversation_type'] == 'Update':
+        for column in editable_columns_list:
+            text = text + '\n' + column + ': ' + str(context.user_data[column])
 
-    button_labels = [['YES'], ['NO']]
-    reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
-    update.message.reply_text('Confirm please', reply_markup=reply_keyboard)
-    
+        update.message.reply_text(text)
+        button_labels = [['YES'], ['NO'], ['Remove an ANTIBIOTIC']]
+        reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
+        update.message.reply_text("Confirm please!\nOr select 'Remove an ANTIBIOTIC' if you need to remove any ANTIBIOTIC", reply_markup=reply_keyboard)
+
+    if context.user_data['conversation_type'] == 'register':
+        for column in editable_columns_list_register:
+            text = text + '\n' + column + ': ' + str(context.user_data[column])
+
+        update.message.reply_text(text)
+        button_labels = [['YES'], ['NO']]
+        reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
+        update.message.reply_text("Confirm please!", reply_markup=reply_keyboard)
+
     return CONFIRM
 
 
 def edit(update, context):
-    button_labels = [['GCS'], ['Ventilation'], ['SPO2'], ['PR'], ['BP'], ['INOTROPE'], ['ANALGESIA'], ['SEDATION'], ['ANTIBIOTIC(S)'], ['Other drugs'], ['INSULIN infusion'], ['ULCER PROPHYLAXIS'], ['REMDESIVIR'], ['CLEXANE'], ['METHYLPREDNISOLONE EQUI DOSE DEXA (1.5:8)'], ['TOCILIZUMAB'], ['STOOL'], ['FEVER'], ['FEED'], ['I/O'], ['RTA/DRAIN'], ['Hemogram'], ['Coagulogram'], ['SE'], ['RFT'], ['ABG/VBG'], ['RBS'], ['Special Ix'], ['Date'], ['IL 6'], ['Ferritin'], ['CRP'], ['D Dimer'], ['LDH'], ['CxR'], ['APACHE IV'], ['HAS BLED'], ['MDRD GFR'], ['SOFA score'],['Other Scores'], ['INSTRUCTIONS']]
+    if context.user_data['conversation_type'] == 'Update':
+        button_labels = [['GCS'], ['Ventilation'], ['SPO2'], ['PR'], ['BP'], ['INOTROPE'], ['ANALGESIA'], ['SEDATION'], ['ANTIBIOTIC(S)'], ['Other drugs'], ['INSULIN infusion'], ['ULCER PROPHYLAXIS'], ['REMDESIVIR'], ['CLEXANE'], ['METHYLPREDNISOLONE EQUI DOSE DEXA (1.5:8)'], ['TOCILIZUMAB'], ['STOOL'], ['FEVER'], ['FEED'], ['I/O'], ['RTA/DRAIN'], ['Hemogram'], ['Coagulogram'], ['SE'], ['RFT'], ['ABG/VBG'], ['RBS'], ['Special Ix'], ['Date'], ['IL 6'], ['Ferritin'], ['CRP'], ['D Dimer'], ['LDH'], ['CxR'], ['APACHE IV'], ['HAS BLED'], ['MDRD GFR'], ['SOFA score'],['Other Scores'], ['INSTRUCTIONS']]
+
+    if context.user_data['conversation_type'] == 'register':
+        button_labels = [['id'], ['Patient Name'], ['Age/Sex'], ['Room Number'], ['Primary Physician'], ['Comorbidities'], ['Day of stay'], ['Day of ICU stay']]
+
     reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
+
     update.message.reply_text('Which field you need to edit ?', reply_markup=reply_keyboard)
 
     return wait_edit_choice
@@ -213,7 +279,10 @@ def get_column_to_edit(update, context):
 
 def edit_choice(update, context):
     column = context.user_data['field_to_edit']
-    context.user_data[column] = update.message.text
+    if column==editable_columns_list[8]:
+        context.user_data[column] = context.user_data['patient_id_row'][editable_columns_list[8]].values[0] + '\n' + update.message.text
+    else:
+        context.user_data[column] = update.message.text
     if 'field_to_edit' in context.user_data:
         del context.user_data['field_to_edit']
 
@@ -222,9 +291,40 @@ def edit_choice(update, context):
     return CONFIRM
 
 
+def get_antibiotic_line(update, context):
+    column = editable_columns_list[8]
+    antibiotic_text = context.user_data[column]
+    button_labels = []
+    for antibotic_line in antibiotic_text.strip().split('\n'):
+        button_labels.append([f'({len(button_labels)+1})- {antibotic_line}'])
+
+    reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
+    update.message.reply_text(f'Old {column} value: {context.user_data[column]}'
+                                f'\nSelect Antibiotic line to remove', reply_markup=reply_keyboard)
+    
+    return antibiotic_value_to_remove
+
+
+def remove_selected_antibiotic(update, context):
+    line_index = int(re.search('^\((.*)\)-', update.message.text).group(1))
+    antibiotic_text = context.user_data[editable_columns_list[8]]
+    new_antibiotic_value = ''
+    antibiotic_lines = antibiotic_text.strip().split('\n')
+    for i in range (len(antibiotic_lines)):
+        if i!=line_index-1:
+            new_antibiotic_value = new_antibiotic_value + '\n' + antibiotic_lines[i]
+
+    new_antibiotic_value = new_antibiotic_value.strip()
+    context.user_data[editable_columns_list[8]] = new_antibiotic_value
+
+    log_received_information(update, context)
+    
+    return CONFIRM
+
+
 def done(update, context):
 
-    if context.user_data['conversation_type']=='Update':
+    if context.user_data['conversation_type']=='Update' or context.user_data['conversation_type']=='register':
         # authorize the clientsheet
         client = gspread.authorize(creds)
 
@@ -236,25 +336,51 @@ def done(update, context):
 
         # convert the json to dataframe
         df_data = pd.DataFrame.from_dict(data)
+
         IST = pytz.timezone('Asia/Kolkata')
-        for column in editable_columns_list:
-            context.user_data['patient_id_row'][column] =  context.user_data[column]
-        context.user_data['patient_id_row'].at[context.user_data['patient_id_row'].index[-1], 'Save time'] = str(datetime.now(IST))
-        print(context.user_data['patient_id_row'])
-        df_data = df_data.append(context.user_data['patient_id_row'])
-        last_row_list = context.user_data['patient_id_row'].values[0].tolist()
-        sheet.insert_row(last_row_list, len(df_data)+1)
 
+        if context.user_data['conversation_type']=='Update':
+            
+            for column in editable_columns_list:
+                context.user_data['patient_id_row'][column] =  context.user_data[column]
+            
+            now = datetime.now(IST)
+            IST_now = now.strftime("%d/%m/%Y %H:%M:%S")
+            context.user_data['patient_id_row'].at[context.user_data['patient_id_row'].index[-1], 'Save time'] = IST_now
+            df_data = df_data.append(context.user_data['patient_id_row'])
+            last_row_list = context.user_data['patient_id_row'].values[0].tolist()
+            sheet.insert_row(last_row_list, len(df_data)+1)
 
-    update.message.reply_text("Until next time!"
-                              "\nBye!")
+        elif context.user_data['conversation_type'] == 'register':
+
+            df_data_len = len(df_data)
+            for column in editable_columns_list_register:
+                df_data.at[df_data_len, column] = context.user_data[column]
+            
+            now = datetime.now(IST)
+            IST_now = now.strftime("%d/%m/%Y %H:%M:%S")
+            df_data.at[df_data_len, 'Save time'] = IST_now
+
+            df_data.iloc[- 1].fillna('')
+            new_row_list = df_data.iloc[- 1].fillna('').values.tolist()
+            sheet.insert_row(new_row_list, len(df_data) + 1)
+ 
+    update.message.reply_text("Record saved!""\nUntil next time!""\nBye!")
     context.user_data.clear()
 
     return ConversationHandler.END
 
+def cancel(update, context):
+    user = update.message.from_user
+    logger.info("User %s canceled the conversation.", user.first_name)
+    update.message.reply_text('Record has been cancelled successfully!'
+        '\nBye! I hope we can talk again some day.', reply_markup=ReplyKeyboardRemove()
+    )
+
+    return ConversationHandler.END
 
 def log_user_message(update, context):
-    print(f'Message sent by user: {update.message.text}')
+    print(f'Message sent by {update.message.from_user.first_name}: {update.message.text}')
 
 
 def main():
@@ -284,32 +410,75 @@ def main():
             ],
 
             SPO2:[
-                MessageHandler(Filters.text, update_patient_info)
+                MessageHandler(Filters.text & ~Filters.command, update_patient_info)
             ],
 
             INSTRUCTIONS:[
-                MessageHandler(Filters.text, received_information)
+                MessageHandler(Filters.text & ~Filters.command, received_information)
             ],
 
             CONFIRM:[
                 MessageHandler(Filters.regex('^YES$'), done),
-                MessageHandler(Filters.regex('^NO$'), edit)
+                MessageHandler(Filters.regex('^NO$'), edit),
+                MessageHandler(Filters.regex('^Remove an ANTIBIOTIC$'), get_antibiotic_line)
             ],
             
+            antibiotic_value_to_remove:[
+                MessageHandler(Filters.text & ~Filters.command, remove_selected_antibiotic)
+            ],
+
             wait_edit_choice:[
-                MessageHandler(Filters.text, get_column_to_edit)
+                MessageHandler(Filters.text & ~Filters.command, get_column_to_edit)
             ],
 
             edit_selected_choice:[
-                MessageHandler(Filters.text, edit_choice)
+                MessageHandler(Filters.text & ~Filters.command, edit_choice)
             ]
         },
 
-        fallbacks=[CommandHandler('Done', done),
+        fallbacks=[CommandHandler('cancel', cancel),
+                CommandHandler('Done', done),
+                MessageHandler(Filters.regex('^Done$'), done)]
+    )
+
+    conv_handler2 = ConversationHandler(
+        entry_points=[CommandHandler('register', register)],
+
+        states={
+
+            enter_new_values:[
+                MessageHandler(Filters.text & ~Filters.command, new_values)
+            ],
+
+            patient_id: [
+                MessageHandler(Filters.text & ~Filters.command, new_values)
+            ],
+
+            Day_of_ICU_stay: [
+                MessageHandler(Filters.text & ~Filters.command, received_information)
+            ],
+
+            CONFIRM: [
+                MessageHandler(Filters.regex('^YES$'), done),
+                MessageHandler(Filters.regex('^NO$'), edit)
+            ],
+
+            wait_edit_choice: [
+                MessageHandler(Filters.text & ~Filters.command, get_column_to_edit)
+            ],
+
+            edit_selected_choice: [
+                MessageHandler(Filters.text & ~Filters.command, edit_choice)
+            ]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel),
+                CommandHandler('Done', done),
                 MessageHandler(Filters.regex('^Done$'), done)]
     )
 
     dp.add_handler(conv_handler)
+    dp.add_handler(conv_handler2)
     dp.add_handler(MessageHandler(Filters.text, log_user_message), group=1)
 
     # Start the Bot
