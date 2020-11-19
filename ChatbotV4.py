@@ -414,7 +414,7 @@ def remove_selected_antibiotic(update, context):
 
 def done(update, context):
 
-    if context.user_data['conversation_type']=='Update' or context.user_data['conversation_type']=='register' or context.user_data['conversation_type']=='discharge':
+    if 'conversation_type' in context.user_data and context.user_data['conversation_type']=='Update' or context.user_data['conversation_type']=='register' or context.user_data['conversation_type']=='discharge':
         # authorize the clientsheet
         client = gspread.authorize(creds)
 
@@ -476,7 +476,7 @@ def done(update, context):
 
 def cancel(update, context):
 
-    if context.user_data['conversation_type'] == 'discharge':
+    if ('conversation_type' in context.user_data) and (context.user_data['conversation_type'] == 'discharge'):
         update.message.reply_text(text='Discharging has been cancelled!\nEnter /discharge to select another patient')
     
     else:
@@ -517,8 +517,7 @@ def main():
 
             update_or_get: [
                 MessageHandler(Filters.regex('^Get$'), get_patient_info),
-                MessageHandler(Filters.regex('^Update$'), update_patient_info),
-                CommandHandler('Done', done)
+                MessageHandler(Filters.regex('^Update$'), update_patient_info)
             ],
 
             SPO2:[
