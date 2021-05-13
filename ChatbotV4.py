@@ -77,7 +77,7 @@ def start(update, context):
     client = gspread.authorize(creds)
 
     # get the instance sheet of the Spreadsheet
-    sheet = client.open("Bot Spreadsheet").sheet1
+    sheet = client.open("Bot Spreadsheet").worksheet('Sheet1')
     context.user_data['sheet'] = sheet
 
     # get all the records of the data
