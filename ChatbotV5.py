@@ -524,7 +524,8 @@ def main():
     # Post version 12 this will no longer be necessary
     # Misktok: 1366155886:AAH98WssxAmqqnv6xXdWPVsco9-qKtgHWP0
     # Covidtok: 1372061263:AAEcokfTYO9LnvdM_njDzl3XNHSCqtr9h2E
-    updater = Updater("1825224146:AAEBZVTH0fCwkwHVnPrRIM7nGOnPvzF0trM", use_context=True)
+    # meryemhamdanebot: 1825224146:AAEBZVTH0fCwkwHVnPrRIM7nGOnPvzF0trM
+    updater = Updater("1372061263:AAEcokfTYO9LnvdM_njDzl3XNHSCqtr9h2E", use_context=True)
 
     print('Bot has started ...')
 
