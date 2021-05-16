@@ -68,7 +68,7 @@ editable_columns_list = ['GCS', 'Ventilation', 'SPO2', 'PR', 'BP', 'INOTROPE', '
                          'RTA/DRAIN', 'Hemogram', 'Coagulogram', 'SE', 'RFT', 'ABG/VBG', 'RBS', 'Special Ix', 'Date',
                          'IL 6', 'Ferritin', 'CRP', 'D Dimer', 'LDH', 'CxR', 'APACHE IV', 'HAS BLED', 'GFR',
                          'SOFA score', 'Other Scores', 'INSTRUCTIONS', ]
-editable_columns_list_register = ['id', 'Patient Name', 'Age/Sex', 'Day of Admission', 'Day of first positive symptoms', 'Diagnosis',
+editable_columns_list_register = ['UHID', 'Patient Name', 'Age/Sex', 'Day of Admission', 'Day of first positive symptoms', 'Diagnosis',
                                   'Co-Morbidities', 'CTSS-scoring', 'Weight', 'Height']
 
 # Read Google sheet data
@@ -121,7 +121,7 @@ def register(update, context):
     context.user_data['datatable'] = df_data
     context.user_data['column_index_register'] = 1
     context.user_data['conversation_type'] = 'register'
-    update.message.reply_text(f'Hi {fname}, Enter the new patient id')
+    update.message.reply_text(f'Hi {fname}, Enter the new patient UHID')
 
     return enter_new_values
 
@@ -151,7 +151,7 @@ def new_values(update, context):
     column_index_register = context.user_data['column_index_register']
     if column_index_register == 1:
         context.user_data['conversation_type'] = 'register'
-        context.user_data['id'] = update.message.text
+        context.user_data['UHID'] = update.message.text
 
     column = editable_columns_list_register[column_index_register]
 
@@ -175,8 +175,8 @@ def get_patient_id(update, context):
     df_data = context.user_data['datatable']
     df_data_patient_id = 'Not found'
 
-    if patient_id.isdigit() and (int(patient_id) in df_data['id'].values.tolist()):
-        df_data_patient_id = df_data[df_data['id'] == int(patient_id)]
+    if patient_id.isdigit() and (int(patient_id) in df_data['UHID'].values.tolist()):
+        df_data_patient_id = df_data[df_data['UHID'] == int(patient_id)]
     elif '_' in patient_id:
         name_age = patient_id.split("_")
         name = name_age[0]
@@ -206,8 +206,8 @@ def get_patient_id_discharge(update, context):
     df_data = context.user_data['datatable']
     df_data_patient_id = 'Not found'
 
-    if patient_id.isdigit() and (int(patient_id) in df_data['id'].values.tolist()):
-        df_data_patient_id = df_data[df_data['id'] == int(patient_id)]
+    if patient_id.isdigit() and (int(patient_id) in df_data['UHID'].values.tolist()):
+        df_data_patient_id = df_data[df_data['UHID'] == int(patient_id)]
     elif '_' in patient_id:
         name_age = patient_id.split("_")
         name = name_age[0]
@@ -380,7 +380,7 @@ def edit(update, context):
                          ['SOFA score'], ['Other Scores'], ['INSTRUCTIONS']]
 
     if context.user_data['conversation_type'] == 'register':
-        button_labels = [['id'], ['Patient Name'], ['Age/Sex'], ['Day of Admission'], ['Day of first positive symptoms'],
+        button_labels = [['UHID'], ['Patient Name'], ['Age/Sex'], ['Day of Admission'], ['Day of first positive symptoms'],
                          ['Diagnosis'], ['Co-Morbidities'], ['CTSS-scoring'], ['Weight'], ['Height'] ]
 
     reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
@@ -525,7 +525,7 @@ def main():
     # Misktok: 1366155886:AAH98WssxAmqqnv6xXdWPVsco9-qKtgHWP0
     # Covidtok: 1372061263:AAEcokfTYO9LnvdM_njDzl3XNHSCqtr9h2E
     # meryemhamdanebot: 1825224146:AAEBZVTH0fCwkwHVnPrRIM7nGOnPvzF0trM
-    updater = Updater("1372061263:AAEcokfTYO9LnvdM_njDzl3XNHSCqtr9h2E", use_context=True)
+    updater = Updater("1825224146:AAEBZVTH0fCwkwHVnPrRIM7nGOnPvzF0trM", use_context=True)
 
     print('Bot has started ...')
 
