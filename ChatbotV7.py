@@ -50,16 +50,16 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-Done, choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice, patient_id, enter_new_values = range(
-    10)
+advice_plan, choosing_patient_name, Done, choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice, patient_id, enter_new_values = range(
+    12)
 #INOTROPE = VITALS SPO2     
 GCS, Ventilation, SPO2, PR, BP, INOTROPE, ANALGESIA, SEDATION, ANTIBIOTIC, Other_drugs, INSULIN_infusion, ULCER_PROPHYLAXIS, REMDESIVIR, Anticoagulation, METHYLPREDNISOLONE_EQUI_DOSE_DEXA, TOCILIZUMAB, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, Date, IL_6, Ferritin, CRP, D_Dimer, LDH, CxR, APACHE_IV, HAS_BLED, GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(
-    10, 51)
-vitalsvalue, id, Patient_Name, Age_Sex, Day_of_Admission, Day_of_first_positive_symptoms, Diagnosis, Co_Morbidities, CTSS_scoring, Weight, Height = range(51, 62)
-antibiotic_value_to_remove = 62
-discharge_choosing_patient_id = 63
-discharge_confirm = 64
-antibiotic_state, remove_antibiotic_yes_no = range(65, 67)
+    12, 53)
+vitalsvalue, id, Patient_Name, Age_Sex, Day_of_Admission, Day_of_first_positive_symptoms, Diagnosis, Co_Morbidities, CTSS_scoring, Weight, Height = range(53, 64)
+antibiotic_value_to_remove = 64
+discharge_choosing_patient_id = 65
+discharge_confirm = 66
+antibiotic_state, remove_antibiotic_yes_no = range(67, 69)
 
 reply_keyboard = [['Get', 'Update']]
 
@@ -120,6 +120,7 @@ def register(update, context):
 
     # convert the json to dataframe
     df_data = pd.DataFrame.from_dict(data)
+    print(df_data)
     context.user_data['datatable'] = df_data
     context.user_data['column_index_register'] = 1
     context.user_data['conversation_type'] = 'register'
@@ -196,7 +197,7 @@ def get_patient_id(update, context):
     context.user_data['patient_id_row'] = df_data_last_row
     context.user_data['column_index'] = 0
     if context.user_data['conversation_type'] == 'Vitalsmode':
-        print('next1')
+        update.message.reply_text(text='Enter GCS (E/V/M) value')
         return vitalsvalue
 
     # Get/Update
@@ -251,6 +252,7 @@ def roundmode(update, context):
     sheet = client.open("Bot Spreadsheet").sheet1
     context.user_data['sheet'] = sheet
 
+
     # get all the records of the data
     data = sheet.get_all_records()
     # convert the json to dataframe
@@ -274,9 +276,10 @@ def roundmode(update, context):
             update.message.reply_text(text)
             liste.append(uhid)
       
-    done(update, context)
+    update.message.reply_text(text='this is all information of all patients')
+    patient_name(update, context)
 
-    return None
+    return choosing_patient_name
 
 def vitalsmode(update, context):
     fname = update.message.from_user.first_name
@@ -297,26 +300,28 @@ def vitalsmode(update, context):
     context.user_data['conversation_type'] = 'Vitalsmode'
     update.message.reply_text(f'Hi {fname}, Select the patient considered ')
 
-    return choosing_patient_id  
+    return choosing_patient_id 
 
 def vitals(update, context):
     
     column_index = context.user_data['column_index']
-    if column_index == 0:
-        context.user_data['conversation_type'] = 'Vitalsmode' 
     
-    if 0< column_index < 5:
-        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+    
 
-    if column_index == 5:
+
+    if column_index <3:
+        context.user_data[editable_columns_list_vitalsmode[column_index ]] = update.message.text
+    
+    
+    if column_index == 3:
         return INOTROPE
 
-    column = editable_columns_list_vitalsmode[column_index]
-    markup = ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
+    column = editable_columns_list_vitalsmode[column_index +1]
+    markup = ForceReply(True, False)
     update.message.reply_text(f'Enter {column} value', reply_markup=markup)
     context.user_data['column_index'] = column_index + 1
-    
 
+    
     return GCS
 
 
@@ -338,6 +343,23 @@ def get_patient_info(update, context):
 
 
 def update_patient_info(update, context):
+    if context.user_data['conversation_type'] == 'roundmode':
+        name = update.message.text
+        context.user_data['patient_name'] = name
+        dic = context.user_data['dict_uhid_name']
+        uhid = list(dic.keys())[list(dic.values()).index(name)]
+        
+        df_data = context.user_data['datatable']
+        df_data_patient_id = df_data[df_data['UHID'] == int(uhid)]
+        df_data_last_row = df_data_patient_id.iloc[[-1]]
+        context.user_data['patient_id_row'] = df_data_last_row
+
+        old_value = df_data_last_row['advice_plan'].values[0]
+        update.message.reply_text(f'Old advice_plan value: {old_value}')
+
+        update.message.reply_text(text='Enter the new advice_plan ')
+        return advice_plan
+
     if context.user_data['patient_id_row'].iloc[0]['Discharged'] == 'YES':
         update.message.reply_text("You can't update the selected patient information because he has been discharged!")
         done(update, context)
@@ -432,7 +454,10 @@ def received_information(update, context):
         context.user_data[editable_columns_list_register[column_index_register - 1]] = update.message.text
     
     if context.user_data['conversation_type'] == 'Vitalsmode':
-        context.user_data[editable_columns_list[column_index - 1]] = update.message.text
+        context.user_data[editable_columns_list[column_index]] = update.message.text
+    
+    if context.user_data['conversation_type'] == 'roundmode':
+        context.user_data['advice_plan'] = update.message.text
 
     log_received_information(update, context)
     
@@ -454,7 +479,14 @@ def log_received_information(update, context):
     elif context.user_data['conversation_type'] == 'Vitalsmode':
         for column in editable_columns_list_vitalsmode:
             text = text + '\n' + column + ': ' + str(context.user_data[column])
-
+    
+    elif context.user_data['conversation_type'] == 'roundmode':
+    
+        name = context.user_data['patient_name']
+        advice_plan = context.user_data['advice_plan']
+        text = 'Patient Name' + ':' + name + '\n' + 'advice_plan' + ':' + advice_plan
+        
+            
            
     update.message.reply_text(text)
     button_labels = [['YES'], ['NO']]
@@ -488,10 +520,19 @@ def edit(update, context):
 
 
 def get_column_to_edit(update, context):
-    column = update.message.text
-    context.user_data['field_to_edit'] = column
-    markup = ForceReply(True, False)
-    update.message.reply_text(f'Old {column} value: {context.user_data[column]}'
+    if context.user_data['conversation_type'] == 'roundmode':
+
+        context.user_data['field_to_edit'] = 'advice_plan'
+        advice_plan = context.user_data['advice_plan']
+        markup = ForceReply(True, False)
+        update.message.reply_text(f'Old advice_plan value: {advice_plan}'
+                              f'\nEnter advice_plan new value', reply_markup=markup)
+    else:
+        
+        column = update.message.text
+        context.user_data['field_to_edit'] = column
+        markup = ForceReply(True, False)
+        update.message.reply_text(f'Old {column} value: {context.user_data[column]}'
                               f'\nEnter {column} new value', reply_markup=markup)
 
     return edit_selected_choice
@@ -595,13 +636,63 @@ def done(update, context):
             update.message.reply_text(text='The patient has been discharged successfully!')
 
         elif context.user_data['conversation_type'] == 'roundmode':
-            update.message.reply_text(text='This is all information of all patients')
+            
+            context.user_data['patient_id_row']['advice_plan'] = context.user_data['advice_plan']
+
+            context.user_data['patient_id_row']['Save time'] = IST_now
+            df_data = df_data.append(context.user_data['patient_id_row'])
+            last_row_list = context.user_data['patient_id_row'].values[0].tolist()
+            sheet.insert_row(last_row_list, len(df_data) + 1)
+
+            update.message.reply_text("Record saved!")
+
+        elif context.user_data['conversation_type'] == 'Vitalsmode':
+
+            for column in editable_columns_list_vitalsmode:
+                context.user_data['patient_id_row'][column] = context.user_data[column]
+
+            context.user_data['patient_id_row']['Save time'] = IST_now
+            df_data = df_data.append(context.user_data['patient_id_row'])
+            last_row_list = context.user_data['patient_id_row'].values[0].tolist()
+            sheet.insert_row(last_row_list, len(df_data) + 1)
+
+            update.message.reply_text("Record saved!")
 
     update.message.reply_text("Until next time!""\nBye!")
     context.user_data.clear()
 
     return ConversationHandler.END
 
+def patient_name(update, context):
+    if context.user_data['conversation_type']== 'roundmode':
+        df_data = context.user_data['datatable']
+        dic= {}
+        for i in range(len(df_data)):
+
+            uhid = df_data.at[i, 'UHID']
+            name = df_data.at[i, 'Patient Name']
+            dic[uhid]= name
+
+        context.user_data['dict_uhid_name'] = dic
+        list_name = []
+        for name in dic.values():
+            list_name.append(name)
+            
+        button_labels = []
+        for el in list_name:
+            sub = el.split(', ')
+            button_labels.append(sub)
+
+        reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
+        update.message.reply_text("Select the patient considered", reply_markup=reply_keyboard)
+    return choosing_patient_name   
+    
+
+
+
+
+
+    
 
 def cancel(update, context):
     if ('conversation_type' in context.user_data) and (context.user_data['conversation_type'] == 'discharge'):
@@ -628,7 +719,7 @@ def main():
     # Misktok: 1366155886:AAH98WssxAmqqnv6xXdWPVsco9-qKtgHWP0
     # Covidtok: 1372061263:AAEcokfTYO9LnvdM_njDzl3XNHSCqtr9h2E
     # meryemhamdanebot: 1825224146:AAEBZVTH0fCwkwHVnPrRIM7nGOnPvzF0trM
-    updater = Updater("1372061263:AAEcokfTYO9LnvdM_njDzl3XNHSCqtr9h2E", use_context=True)
+    updater = Updater("1825224146:AAEBZVTH0fCwkwHVnPrRIM7nGOnPvzF0trM", use_context=True)
 
     print('Bot has started ...')
 
@@ -747,7 +838,23 @@ def main():
         entry_points=[CommandHandler('roundmode', roundmode)],
 
         states={
-           
+            choosing_patient_name: [
+                MessageHandler(Filters.text & ~Filters.command, update_patient_info)
+            ],
+            
+            advice_plan: [
+                MessageHandler(Filters.text & ~Filters.command, received_information)
+            ],
+
+            CONFIRM: [
+                MessageHandler(Filters.regex('^YES$'), done),
+                MessageHandler(Filters.regex('^NO$'), get_column_to_edit)
+            ],
+
+            edit_selected_choice: [
+                MessageHandler(Filters.text & ~Filters.command, edit_choice)
+            ]
+
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )
@@ -764,12 +871,17 @@ def main():
                 MessageHandler(Filters.text & ~Filters.command, vitals)
             ],
 
-            INOTROPE: [
+            GCS: [
                 MessageHandler(Filters.text & ~Filters.command, vitals)
             ],
 
-            GCS: [
+            INOTROPE: [
                 MessageHandler(Filters.text & ~Filters.command, received_information)
+            ],
+
+            CONFIRM: [
+                MessageHandler(Filters.regex('^YES$'), done),
+                MessageHandler(Filters.regex('^NO$'), edit)
             ],    
         },
         fallbacks=[CommandHandler('cancel', cancel)]
