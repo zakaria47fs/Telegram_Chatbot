@@ -52,8 +52,8 @@ logger = logging.getLogger(__name__)
 
 advice_plan, choosing_patient_name, Done, choosing_patient_id, update_or_get, update_state, patient_information_gathered, CONFIRM, wait_edit_choice, edit_selected_choice, patient_id, enter_new_values = range(
     12)
-#INOTROPE = VITALS SPO2     
-GCS, Ventilation, SPO2, PR, BP, INOTROPE, ANALGESIA, SEDATION, ANTIBIOTIC, Other_drugs, INSULIN_infusion, ULCER_PROPHYLAXIS, REMDESIVIR, Anticoagulation, METHYLPREDNISOLONE_EQUI_DOSE_DEXA, TOCILIZUMAB, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, Date, IL_6, Ferritin, CRP, D_Dimer, LDH, CxR, APACHE_IV, HAS_BLED, GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(
+    
+GCS, ventilation_value, SPO2, PR, BP, SPO2_vitals, next_value, bipap, feed_value, calories, stool_passed, ULCER_PROPHYLAXIS, CONFIRM_vitals, Anticoagulation, METHYLPREDNISOLONE_EQUI_DOSE_DEXA, TOCILIZUMAB, STOOL, FEVER, FEED, I_O, RTA_DRAIN, Hemogram, Coagulogram, SE, RFT, ABG_VBG, RBS, Special_Ix, Date, IL_6, Ferritin, CRP, D_Dimer, LDH, CxR, APACHE_IV, HAS_BLED, GFR, SOFA_score, Other_Scores, INSTRUCTIONS = range(
     12, 53)
 vitalsvalue, id, Patient_Name, Age_Sex, Day_of_Admission, Day_of_first_positive_symptoms, Diagnosis, Co_Morbidities, CTSS_scoring, Weight, Height = range(53, 64)
 antibiotic_value_to_remove = 64
@@ -299,7 +299,7 @@ def vitalsmode(update, context):
     return choosing_patient_name
 
 def vitals(update, context):
-    
+    context.user_data['vitals_ventillation']='vitals'
     column_index_vitals = context.user_data['column_index_vitals']
     column = editable_columns_list_vitalsmode[column_index_vitals]
     if 0< column_index_vitals <4:
@@ -311,13 +311,97 @@ def vitals(update, context):
     context.user_data['column_index_vitals'] = column_index_vitals + 1
 
     if column_index_vitals == 3:
-        return INOTROPE
+        return SPO2_vitals
 
     return GCS
+
+def ventilation(update, context):
+    
+    button_labels = [['NRBM'], ['Room Air'], ['SFM'], ['Nasal Cannula'], ['Bipap'], ['HFNO'], ['Invasive Ventilation'], ['NIV']]
+    markup = ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
+    update.message.reply_text('Enter ventilation ', reply_markup=markup)
+    return ventilation_value
+
+def Ventilation_values(update, context):
+    field = update.message.text
+    context.user_data['field_ventilation'] = field
+    L= ['NRBM', 'Room Air', 'SFM', 'Nasal Cannula']
+    K= ['HFNO', 'Invasive Ventilation', 'NIV']
+    if field in L :
+        markup = ForceReply(True, False)
+        update.message.reply_text(text='Enter Flow (l/min)',reply_markup=markup )
+
+    elif field in K:
+        markup = ForceReply(True, False)
+        update.message.reply_text(text='Enter FiO2/Support/PEEP', reply_markup=markup)
+
+    elif field == 'Bipap':
+        markup = ForceReply(True, False)
+        update.message.reply_text(text='Enter Flow (l/min)', reply_markup=markup)
+        return bipap 
+
+    return feed_value  
+
+def flow_bipap(update, context):
+    context.user_data['Flow (l/min)'] = update.message.text
+    markup = ForceReply(True, False)
+    update.message.reply_text(text='Enter FiO2/Support/PEEP', reply_markup=markup)
+
+    return feed_value
+
+def Feed_ventilation(update, context):
+    context.user_data['Flow (l/min)']=''
+    context.user_data['FiO2/Support/PEEP']=''
+    field = context.user_data['field_ventilation']
+    L= ['NRBM', 'Room Air', 'SFM', 'Nasal Cannula']
+    K= ['HFNO', 'Invasive Ventilation', 'NIV']
+    if field in L :
+        context.user_data['Flow (l/min)'] = update.message.text
+
+    elif field in K:
+        context.user_data['FiO2/Support/PEEP'] = update.message.text
+
+    elif field == 'Bipap':
+        context.user_data['FiO2/Support/PEEP'] = update.message.text
+    column_index_ventitaltion = 0             
+    markup = ForceReply(True, False)
+    update.message.reply_text(text='Enter Calories/kg value', reply_markup=markup)
+    context.user_data['column_index_ventitaltion'] = column_index_ventitaltion
+
+    return calories 
+
+def Feed(update, context):
+    context.user_data['conversation_type'] = 'Vitalsmode'
+    context.user_data['vitals_ventillation']='ventillation'
+
+    column_index_ventitaltion = context.user_data['column_index_ventitaltion']
+    if column_index_ventitaltion == 0:
+        context.user_data['Calories/kg'] = update.message.text
+        markup = ForceReply(True, False)
+        update.message.reply_text(text='Enter Protein/kg value', reply_markup=markup)
+    if column_index_ventitaltion == 1:
+        context.user_data['Protein/kg'] = update.message.text
+        markup = ForceReply(True, False)
+        update.message.reply_text(text='Enter Stool passed value', reply_markup=markup)
+
+    context.user_data['column_index_ventitaltion'] =  column_index_ventitaltion + 1
+
+    if context.user_data['column_index_ventitaltion'] == 2:
+        return stool_passed  
+
+    
+
+    return next_value 
+
+
+
+    
+
 
 
 
 def get_patient_info(update, context):
+
     context.user_data['conversation_type'] = 'Get'
     df_data_last_row = context.user_data['patient_id_row']
     text = ''
@@ -453,9 +537,17 @@ def received_information(update, context):
         context.user_data[editable_columns_list_register[column_index_register - 1]] = update.message.text
     
     if context.user_data['conversation_type'] == 'Vitalsmode':
-        column_index_vitals = context.user_data['column_index_vitals']
-        context.user_data[editable_columns_list_vitalsmode[column_index_vitals - 1]] = update.message.text
-    
+        if context.user_data['vitals_ventillation']== 'vitals':
+            column_index_vitals = context.user_data['column_index_vitals']
+            context.user_data[editable_columns_list_vitalsmode[column_index_vitals - 1]] = update.message.text
+            log_received_information(update, context)
+            return CONFIRM_vitals
+        else:
+            print('Stool')
+            context.user_data['Stool passed']=update.message.text 
+
+
+
     if context.user_data['conversation_type'] == 'roundmode':
         context.user_data['advice_plan'] = update.message.text
 
@@ -477,9 +569,16 @@ def log_received_information(update, context):
             text = text + '\n' + column + ': ' + str(context.user_data[column])
 
     elif context.user_data['conversation_type'] == 'Vitalsmode':
-        for column in editable_columns_list_vitalsmode:
-            text = text + '\n' + column + ': ' + str(context.user_data[column])
-            print(text)
+        if context.user_data['vitals_ventillation']== 'vitals':
+            for column in editable_columns_list_vitalsmode:
+                text = text + '\n' + column + ': ' + str(context.user_data[column])
+            update.message.reply_text(text)
+            button_labels = [['YES'], ['NO']]
+            reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels, one_time_keyboard=True)
+            update.message.reply_text("Confirm please!", reply_markup=reply_keyboard)
+            return CONFIRM_vitals 
+        else:
+            text = 'Flow (l/min)' + ':' + context.user_data['Flow (l/min)'] + '\n' + 'FiO2/Support/PEEP' + ':' + context.user_data['FiO2/Support/PEEP']+ '\n' + 'Calories/kg ' + ':' + context.user_data['Calories/kg']+ '\n' + 'Protein/kg ' + ':' + context.user_data['Protein/kg']+ '\n' + 'Stool passed ' + ':' + context.user_data['Stool passed']   
     
     elif context.user_data['conversation_type'] == 'roundmode':
     
@@ -511,8 +610,11 @@ def edit(update, context):
                          ['Diagnosis'], ['Co-Morbidities'], ['CTSS-scoring'], ['Weight'], ['Height'] ]
     
     if context.user_data['conversation_type'] == 'Vitalsmode':
-        button_labels = [['GCS (E/V/M)'], ['PR /min'], ['BP mm hg'], ['SPO2 %']]
-
+        if context.user_data['vitals_ventillation']== 'vitals':
+            button_labels = [['GCS (E/V/M)'], ['PR /min'], ['BP mm hg'], ['SPO2 %']]
+        else: 
+            button_labels = [['Flow (l/min)'], ['FiO2/Support/PEEP'], ['Calories/kg'], ['Protein/kg'], ['Stool passed']]
+    
     reply_keyboard = telegram.ReplyKeyboardMarkup(button_labels)
 
     update.message.reply_text('Which field you need to edit ?', reply_markup=reply_keyboard)
@@ -550,6 +652,9 @@ def edit_choice(update, context):
         del context.user_data['field_to_edit']
 
     log_received_information(update, context)
+    if context.user_data['vitals_ventillation']== 'vitals':
+        print('Confirm vitals')
+        return CONFIRM_vitals
 
     return CONFIRM
 
@@ -652,6 +757,11 @@ def done(update, context):
             for column in editable_columns_list_vitalsmode:
                 context.user_data['patient_id_row'][column] = context.user_data[column]
 
+            context.user_data['patient_id_row']['Flow (l/min)'] = context.user_data['Flow (l/min)']
+            context.user_data['patient_id_row']['FiO2/Support/PEEP'] = context.user_data['FiO2/Support/PEEP']
+            context.user_data['patient_id_row']['Calories/kg'] = context.user_data['Calories/kg']
+            context.user_data['patient_id_row']['Protein/kg'] = context.user_data['Protein/kg']
+            context.user_data['patient_id_row']['Stool passed'] = context.user_data['Stool passed']
             context.user_data['patient_id_row']['Save time'] = IST_now
             df_data = df_data.append(context.user_data['patient_id_row'])
             last_row_list = context.user_data['patient_id_row'].values[0].tolist()
@@ -870,14 +980,43 @@ def main():
                 MessageHandler(Filters.text & ~Filters.command, vitals)
             ],
 
-            INOTROPE: [
+            SPO2_vitals: [
+                MessageHandler(Filters.text & ~Filters.command, received_information)
+            ],
+
+            CONFIRM_vitals: [
+                MessageHandler(Filters.regex('^YES$'), ventilation),
+                MessageHandler(Filters.regex('^NO$'), edit)
+            ],
+
+            ventilation_value: [
+                MessageHandler(Filters.text & ~Filters.command, Ventilation_values)
+            ],
+ 
+            bipap: [
+                MessageHandler(Filters.text & ~Filters.command, flow_bipap)
+            ],
+            
+            feed_value: [
+                MessageHandler(Filters.text & ~Filters.command, Feed_ventilation)
+            ],
+
+            calories: [
+                MessageHandler(Filters.text & ~Filters.command, Feed)
+            ],
+
+            next_value: [
+                MessageHandler(Filters.text & ~Filters.command, Feed)
+            ],
+
+            stool_passed: [
                 MessageHandler(Filters.text & ~Filters.command, received_information)
             ],
 
             CONFIRM: [
                 MessageHandler(Filters.regex('^YES$'), done),
                 MessageHandler(Filters.regex('^NO$'), edit)
-            ], 
+            ],
             
             wait_edit_choice: [
                 MessageHandler(Filters.text & ~Filters.command, get_column_to_edit)
