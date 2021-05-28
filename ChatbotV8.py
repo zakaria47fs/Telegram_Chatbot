@@ -72,6 +72,7 @@ editable_columns_list = ['GCS', 'Ventilation', 'SPO2', 'PR', 'BP', 'INOTROPE', '
 editable_columns_list_register = ['UHID', 'Patient Name', 'Age/Sex', 'Day of Admission', 'Day of first positive symptoms', 'Diagnosis',
                                   'Co-Morbidities', 'CTSS-scoring', 'Weight', 'Height']
 editable_columns_list_vitalsmode = ['GCS (E/V/M)', 'PR /min', 'BP mm hg', 'SPO2 %']
+editable_columns_list_ventilation = ['Flow (l/min)', 'FiO2/Support/PEEP', 'Calories/kg', 'Protein/kg', 'Stool passed']
 
 # Read Google sheet data
 # define the scope
@@ -350,15 +351,15 @@ def flow_bipap(update, context):
     return feed_value
 
 def Feed_ventilation(update, context):
-    context.user_data['Flow (l/min)']=''
-    context.user_data['FiO2/Support/PEEP']=''
     field = context.user_data['field_ventilation']
     L= ['NRBM', 'Room Air', 'SFM', 'Nasal Cannula']
     K= ['HFNO', 'Invasive Ventilation', 'NIV']
     if field in L :
+        context.user_data['FiO2/Support/PEEP']=''
         context.user_data['Flow (l/min)'] = update.message.text
 
     elif field in K:
+        context.user_data['Flow (l/min)']=''
         context.user_data['FiO2/Support/PEEP'] = update.message.text
 
     elif field == 'Bipap':
@@ -371,7 +372,6 @@ def Feed_ventilation(update, context):
     return calories 
 
 def Feed(update, context):
-    context.user_data['conversation_type'] = 'Vitalsmode'
     context.user_data['vitals_ventillation']='ventillation'
 
     column_index_ventitaltion = context.user_data['column_index_ventitaltion']
@@ -392,12 +392,6 @@ def Feed(update, context):
     
 
     return next_value 
-
-
-
-    
-
-
 
 
 def get_patient_info(update, context):
@@ -578,8 +572,9 @@ def log_received_information(update, context):
             update.message.reply_text("Confirm please!", reply_markup=reply_keyboard)
             return CONFIRM_vitals 
         else:
-            text = 'Flow (l/min)' + ':' + context.user_data['Flow (l/min)'] + '\n' + 'FiO2/Support/PEEP' + ':' + context.user_data['FiO2/Support/PEEP']+ '\n' + 'Calories/kg ' + ':' + context.user_data['Calories/kg']+ '\n' + 'Protein/kg ' + ':' + context.user_data['Protein/kg']+ '\n' + 'Stool passed ' + ':' + context.user_data['Stool passed']   
-    
+            for column in editable_columns_list_ventilation:
+                text = text + '\n' + column + ': ' + str(context.user_data[column])
+            
     elif context.user_data['conversation_type'] == 'roundmode':
     
         name = context.user_data['patient_name']
@@ -653,7 +648,6 @@ def edit_choice(update, context):
 
     log_received_information(update, context)
     if context.user_data['vitals_ventillation']== 'vitals':
-        print('Confirm vitals')
         return CONFIRM_vitals
 
     return CONFIRM
@@ -757,11 +751,9 @@ def done(update, context):
             for column in editable_columns_list_vitalsmode:
                 context.user_data['patient_id_row'][column] = context.user_data[column]
 
-            context.user_data['patient_id_row']['Flow (l/min)'] = context.user_data['Flow (l/min)']
-            context.user_data['patient_id_row']['FiO2/Support/PEEP'] = context.user_data['FiO2/Support/PEEP']
-            context.user_data['patient_id_row']['Calories/kg'] = context.user_data['Calories/kg']
-            context.user_data['patient_id_row']['Protein/kg'] = context.user_data['Protein/kg']
-            context.user_data['patient_id_row']['Stool passed'] = context.user_data['Stool passed']
+            for column in editable_columns_list_ventilation:
+                context.user_data['patient_id_row'][column] = context.user_data[column]    
+
             context.user_data['patient_id_row']['Save time'] = IST_now
             df_data = df_data.append(context.user_data['patient_id_row'])
             last_row_list = context.user_data['patient_id_row'].values[0].tolist()
